@@ -4,10 +4,10 @@ using ReportSystem.Models.ViewModels;
 
 namespace ReportSystem.Services
 {
-    /// <summary>
-    /// Converts report-specific view models to the shared export format.
-    /// Add one mapping method per report; the format exporters remain shared.
-    /// </summary>
+    
+    // converts report-specific view models to the shared export format.
+    /// add one mapping method per report; the format exporters remain shared.
+    
     public static class ReportExportMapper
     {
         public static ReportExportModel FromPolicyRegister(
