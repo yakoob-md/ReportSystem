@@ -1,0 +1,425 @@
+﻿
+@model ReportSystem.Models.ViewModels.PolicyStatusReportViewModel
+
+@{
+    ViewData["Title"] = "Policy Status Report";
+
+    var firstRecord = Model.TotalCount == 0
+        ? 0
+        : ((Model.PageNumber - 1) * Model.PageSize) + 1;
+
+    var lastRecord = Math.Min(
+        Model.PageNumber * Model.PageSize,
+        Model.TotalCount);
+
+    var displayTotalPages = Math.Max(Model.TotalPages, 1);
+
+    var reportTitle = string.IsNullOrWhiteSpace(
+        Model.ReportOptions.ReportTitle)
+        ? "Policy Status Report"
+        : Model.ReportOptions.ReportTitle;
+}
+
+<style>
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .container, .container-fluid {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+        }
+
+        .card {
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .card-body, .card-header, .card-footer {
+            padding: 0.25rem !important;
+        }
+
+        body {
+            color: #000 !important;
+            background: #fff !important;
+            font-size: 9pt;
+        }
+
+        .table {
+            font-size: 8pt;
+        }
+
+        .table thead {
+            display: table-header-group;
+        }
+
+        .table tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .report-letterhead {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        a {
+            color: #000 !important;
+            text-decoration: none !important;
+        }
+
+        @@page {
+            size: landscape;
+            margin: 12mm;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <!-- Top toolbar -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 no-print">
+
+        <a asp-controller="PolicyStatusReport"
+           asp-action="Index"
+           asp-route-filter.PolicyNumber="@Model.Filter.PolicyNumber"
+           asp-route-filter.Status="@Model.Filter.Status"
+           asp-route-filter.PreviousStatus="@Model.Filter.PreviousStatus"
+           asp-route-filter.NewStatus="@Model.Filter.NewStatus"
+           asp-route-filter.IssueDateFrom="@Model.Filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+           asp-route-filter.IssueDateTo="@Model.Filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+           asp-route-pageNumber="@Model.PageNumber"
+           asp-route-pageSize="@Model.PageSize"
+           class="btn btn-outline-secondary">
+            Back to Policy Status Report
+        </a>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button"
+                    class="btn btn-outline-danger"
+                    onclick="window.print()">
+                Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Main report card -->
+    <article class="card shadow-sm">
+
+        <!-- Company letterhead -->
+        <header class="card-body border-bottom report-letterhead">
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.ReportOptions.CompanyName))
+            {
+                <h2 class="h4 fw-bold text-primary mb-2">
+                    @Model.ReportOptions.CompanyName
+                </h2>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.ReportOptions.CompanyAddress))
+            {
+                <div class="text-body-secondary">
+                    @Model.ReportOptions.CompanyAddress
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.ReportOptions.CompanyEmail))
+            {
+                <div class="text-body-secondary">
+                    @Model.ReportOptions.CompanyEmail
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.ReportOptions.CompanyPhone))
+            {
+                <div class="text-body-secondary">
+                    @Model.ReportOptions.CompanyPhone
+                </div>
+            }
+        </header>
+
+        <div class="card-body">
+
+            <!-- Report title and generated timestamp -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+
+                <div>
+                    <h1 class="h3 fw-bold mb-2">
+                        @reportTitle
+                    </h1>
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        Model.ReportOptions.Description))
+                    {
+                        <p class="text-body-secondary mb-2">
+                            @Model.ReportOptions.Description
+                        </p>
+
+                        <p class="mb-0">
+                            <span class="fw-semibold">Prepared by:</span>
+                            @Model.ReportOptions.Description
+                        </p>
+                    }
+                </div>
+
+                <div class="text-md-end">
+                    <div class="small text-body-secondary">
+                        Report generated
+                    </div>
+
+                    <div class="fw-semibold">
+                        @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter and pagination summary -->
+            <section class="row g-3 p-3 bg-body-tertiary rounded mb-4">
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Policy number
+                    </div>
+                    <div class="fw-semibold">
+                        @(string.IsNullOrWhiteSpace(Model.Filter.PolicyNumber)
+                            ? "All policies"
+                            : Model.Filter.PolicyNumber)
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Current policy status
+                    </div>
+                    <div class="fw-semibold">
+                        @(string.IsNullOrWhiteSpace(Model.Filter.Status)
+                            ? "All statuses"
+                            : Model.Filter.Status)
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Previous status
+                    </div>
+                    <div class="fw-semibold">
+                        @(string.IsNullOrWhiteSpace(Model.Filter.PreviousStatus)
+                            ? "All previous statuses"
+                            : Model.Filter.PreviousStatus)
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        New status
+                    </div>
+                    <div class="fw-semibold">
+                        @(string.IsNullOrWhiteSpace(Model.Filter.NewStatus)
+                            ? "All new statuses"
+                            : Model.Filter.NewStatus)
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Issue date from
+                    </div>
+                    <div class="fw-semibold">
+                        @(Model.Filter.IssueDateFrom?.ToString("dd MMM yyyy")
+                            ?? "All dates")
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Issue date to
+                    </div>
+                    <div class="fw-semibold">
+                        @(Model.Filter.IssueDateTo?.ToString("dd MMM yyyy")
+                            ?? "All dates")
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Records on this page
+                    </div>
+                    <div class="fw-semibold">
+                        @Model.Rows.Count of @Model.TotalCount matching records
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Page
+                    </div>
+                    <div class="fw-semibold">
+                        @(Model.TotalCount == 0
+                            ? "No pages"
+                            : $"{Model.PageNumber} of {displayTotalPages}")
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">
+                        Record range
+                    </div>
+                    <div class="fw-semibold">
+                        @(Model.TotalCount == 0
+                            ? "No records"
+                            : $"{firstRecord}–{lastRecord}")
+                    </div>
+                </div>
+            </section>
+
+            <!-- Status history table -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle mb-0">
+
+                    <thead class="table-primary">
+                        <tr>
+                            <th scope="col">Policy Number</th>
+                            <th scope="col">Policyholder</th>
+                            <th scope="col">Product</th>
+                            <th scope="col">Issue Date</th>
+                            <th scope="col">Current Status</th>
+                            <th scope="col">Previous Status</th>
+                            <th scope="col">New Status</th>
+                            <th scope="col">Changed At</th>
+                            <th scope="col">Change Reason</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Rows.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="9"
+                                    class="text-center text-body-secondary py-4">
+                                    No status records match the selected filters.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in Model.Rows)
+                            {
+                                <tr>
+                                    <td>@row.PolicyNumber</td>
+                                    <td>@row.PolicyholderName</td>
+                                    <td>@row.ProductName</td>
+                                    <td>@row.IssueDate.ToString("dd MMM yyyy")</td>
+                                    <td>@row.CurrentPolicyStatus</td>
+                                    <td>@row.PreviousStatus</td>
+                                    <td>@row.NewStatus</td>
+                                    <td>@row.ChangedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td>@row.ChangeReason</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 pt-3 border-top no-print">
+
+                <div class="text-body-secondary">
+                    @if (Model.TotalCount == 0)
+                    {
+                        <span>No matching status records found.</span>
+                    }
+                    else
+                    {
+                        <span>
+                            Showing @firstRecord–@lastRecord
+                            of @Model.TotalCount status records
+                        </span>
+                    }
+                </div>
+
+                <nav aria-label="Preview pages">
+                    <ul class="pagination mb-0">
+
+                        <li class="page-item @(Model.PageNumber <= 1 || Model.TotalCount == 0 ? "disabled" : "")">
+                            @if (Model.PageNumber > 1 && Model.TotalCount > 0)
+                            {
+                                <a class="page-link"
+                                   asp-controller="PolicyStatusReport"
+                                   asp-action="Preview"
+                                   asp-route-filter.PolicyNumber="@Model.Filter.PolicyNumber"
+                                   asp-route-filter.Status="@Model.Filter.Status"
+                                   asp-route-filter.PreviousStatus="@Model.Filter.PreviousStatus"
+                                   asp-route-filter.NewStatus="@Model.Filter.NewStatus"
+                                   asp-route-filter.IssueDateFrom="@Model.Filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-filter.IssueDateTo="@Model.Filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-reportOptions.CompanyName="@Model.ReportOptions.CompanyName"
+                                   asp-route-reportOptions.CompanyAddress="@Model.ReportOptions.CompanyAddress"
+                                   asp-route-reportOptions.CompanyEmail="@Model.ReportOptions.CompanyEmail"
+                                   asp-route-reportOptions.CompanyPhone="@Model.ReportOptions.CompanyPhone"
+                                   asp-route-reportOptions.ReportTitle="@Model.ReportOptions.ReportTitle"
+                                   asp-route-reportOptions.Description="@Model.ReportOptions.Description">
+                                    Previous
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="page-link">Previous</span>
+                            }
+                        </li>
+
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">
+                                Page @Model.PageNumber of @displayTotalPages
+                            </span>
+                        </li>
+
+                        <li class="page-item @(Model.PageNumber >= Model.TotalPages || Model.TotalCount == 0 ? "disabled" : "")">
+                            @if (Model.PageNumber < Model.TotalPages && Model.TotalCount > 0)
+                            {
+                                <a class="page-link"
+                                   asp-controller="PolicyStatusReport"
+                                   asp-action="Preview"
+                                   asp-route-filter.PolicyNumber="@Model.Filter.PolicyNumber"
+                                   asp-route-filter.Status="@Model.Filter.Status"
+                                   asp-route-filter.PreviousStatus="@Model.Filter.PreviousStatus"
+                                   asp-route-filter.NewStatus="@Model.Filter.NewStatus"
+                                   asp-route-filter.IssueDateFrom="@Model.Filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-filter.IssueDateTo="@Model.Filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-reportOptions.CompanyName="@Model.ReportOptions.CompanyName"
+                                   asp-route-reportOptions.CompanyAddress="@Model.ReportOptions.CompanyAddress"
+                                   asp-route-reportOptions.CompanyEmail="@Model.ReportOptions.CompanyEmail"
+                                   asp-route-reportOptions.CompanyPhone="@Model.ReportOptions.CompanyPhone"
+                                   asp-route-reportOptions.ReportTitle="@Model.ReportOptions.ReportTitle"
+                                   asp-route-reportOptions.Description="@Model.ReportOptions.Description">
+                                    Next
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="page-link">Next</span>
+                            }
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <footer class="card-footer text-body-secondary small">
+            This report displays status-history records matching the selected criteria.
+            Please verify the information before relying on it.
+        </footer>
+    </article>
+</div>

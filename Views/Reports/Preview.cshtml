@@ -1,0 +1,290 @@
+﻿@model ReportSystem.Models.ViewModels.PolicyReportFilterViewModel
+
+@{
+    ViewData["Title"] = "Policy Register Report";
+
+    var firstRecord = Model.TotalCount == 0 ? 0 : ((Model.PageNumber - 1) * Model.PageSize) + 1;
+    var lastRecord = Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount);
+    var displayTotalPages = Math.Max(Model.TotalPages, 1);
+    var reportTitle = string.IsNullOrWhiteSpace(Model.ReportOptions.ReportTitle)
+        ? "Policy Register Report"
+        : Model.ReportOptions.ReportTitle;
+}
+
+@* Bootstrap handles screen layout. This small print-only block is retained for print/PDF pagination and legibility. *@
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        .container, .container-fluid { max-width: none !important; width: 100% !important; padding: 0 !important; }
+        .card { border: 0 !important; box-shadow: none !important; }
+        .card-body, .card-header, .card-footer { padding: 0.25rem !important; }
+        body { color: #000 !important; background: #fff !important; font-size: 9pt; }
+        .table { font-size: 8pt; }
+        .table thead { display: table-header-group; }
+        .table tr { break-inside: avoid; page-break-inside: avoid; }
+        .report-letterhead { break-inside: avoid; page-break-inside: avoid; }
+        a { color: #000 !important; text-decoration: none !important; }
+        @@page { size: landscape; margin: 12mm; }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 no-print">
+        <a asp-controller="Reports" asp-action="Index"
+           asp-route-filter.IssueDateFrom="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+           asp-route-filter.IssueDateTo="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+           asp-route-filter.PolicyStatus="@Model.filter.PolicyStatus"
+           asp-route-pageNumber="@Model.PageNumber"
+           asp-route-pageSize="@Model.PageSize"
+           class="btn btn-outline-secondary">Back to Policy Register</a>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-danger" onclick="window.print()">Print / Save as PDF</button>
+
+            <form asp-controller="Reports" asp-action="Download" method="get" class="d-inline">
+                <input type="hidden" name="format" value="html" />
+                <input type="hidden" name="filter.IssueDateFrom" value="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.IssueDateTo" value="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.PolicyStatus" value="@Model.filter.PolicyStatus" />
+                <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                <input type="hidden" name="reportOptions.CompanyName" value="@Model.ReportOptions.CompanyName" />
+                <input type="hidden" name="reportOptions.CompanyAddress" value="@Model.ReportOptions.CompanyAddress" />
+                <input type="hidden" name="reportOptions.CompanyEmail" value="@Model.ReportOptions.CompanyEmail" />
+                <input type="hidden" name="reportOptions.CompanyPhone" value="@Model.ReportOptions.CompanyPhone" />
+                <input type="hidden" name="reportOptions.ReportTitle" value="@Model.ReportOptions.ReportTitle" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <button type="submit" class="btn btn-outline-primary">HTML</button>
+            </form>
+
+            <form asp-controller="Reports" asp-action="Download" method="get" class="d-inline">
+                <input type="hidden" name="format" value="csv" />
+                <input type="hidden" name="filter.IssueDateFrom" value="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.IssueDateTo" value="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.PolicyStatus" value="@Model.filter.PolicyStatus" />
+                <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                <input type="hidden" name="reportOptions.CompanyName" value="@Model.ReportOptions.CompanyName" />
+                <input type="hidden" name="reportOptions.CompanyAddress" value="@Model.ReportOptions.CompanyAddress" />
+                <input type="hidden" name="reportOptions.CompanyEmail" value="@Model.ReportOptions.CompanyEmail" />
+                <input type="hidden" name="reportOptions.CompanyPhone" value="@Model.ReportOptions.CompanyPhone" />
+                <input type="hidden" name="reportOptions.ReportTitle" value="@Model.ReportOptions.ReportTitle" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <button type="submit" class="btn btn-outline-dark">CSV</button>
+            </form>
+
+            <form asp-controller="Reports" asp-action="Download" method="get" class="d-inline">
+                <input type="hidden" name="format" value="excel" />
+                <input type="hidden" name="filter.IssueDateFrom" value="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.IssueDateTo" value="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.PolicyStatus" value="@Model.filter.PolicyStatus" />
+                <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                <input type="hidden" name="reportOptions.CompanyName" value="@Model.ReportOptions.CompanyName" />
+                <input type="hidden" name="reportOptions.CompanyAddress" value="@Model.ReportOptions.CompanyAddress" />
+                <input type="hidden" name="reportOptions.CompanyEmail" value="@Model.ReportOptions.CompanyEmail" />
+                <input type="hidden" name="reportOptions.CompanyPhone" value="@Model.ReportOptions.CompanyPhone" />
+                <input type="hidden" name="reportOptions.ReportTitle" value="@Model.ReportOptions.ReportTitle" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <button type="submit" class="btn btn-outline-success">Excel</button>
+            </form>
+
+            <form asp-controller="Reports" asp-action="Download" method="get" class="d-inline">
+                <input type="hidden" name="format" value="docx" />
+                <input type="hidden" name="filter.IssueDateFrom" value="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.IssueDateTo" value="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="filter.PolicyStatus" value="@Model.filter.PolicyStatus" />
+                <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                <input type="hidden" name="reportOptions.CompanyName" value="@Model.ReportOptions.CompanyName" />
+                <input type="hidden" name="reportOptions.CompanyAddress" value="@Model.ReportOptions.CompanyAddress" />
+                <input type="hidden" name="reportOptions.CompanyEmail" value="@Model.ReportOptions.CompanyEmail" />
+                <input type="hidden" name="reportOptions.CompanyPhone" value="@Model.ReportOptions.CompanyPhone" />
+                <input type="hidden" name="reportOptions.ReportTitle" value="@Model.ReportOptions.ReportTitle" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <input type="hidden" name="reportOptions.Description" value="@Model.ReportOptions.Description" />
+                <button type="submit" class="btn btn-outline-primary">Word (DOCX)</button>
+            </form>
+        </div>
+    </div>
+
+    <article class="card shadow-sm">
+        <header class="card-body border-bottom report-letterhead">
+            @if (!string.IsNullOrWhiteSpace(Model.ReportOptions.CompanyName))
+            {
+                <h2 class="h4 fw-bold text-primary mb-2">@Model.ReportOptions.CompanyName</h2>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.ReportOptions.CompanyAddress))
+            {
+                <div class="text-body-secondary">@Model.ReportOptions.CompanyAddress</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.ReportOptions.CompanyEmail))
+            {
+                <div class="text-body-secondary">@Model.ReportOptions.CompanyEmail</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.ReportOptions.CompanyPhone))
+            {
+                <div class="text-body-secondary">@Model.ReportOptions.CompanyPhone</div>
+            }
+        </header>
+
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-2">@reportTitle</h1>
+                    @if (!string.IsNullOrWhiteSpace(Model.ReportOptions.Description))
+                    {
+                        <p class="text-body-secondary mb-2">@Model.ReportOptions.Description</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.ReportOptions.Description))
+                    {
+                        <p class="mb-0"><span class="fw-semibold">Prepared by:</span> @Model.ReportOptions.Description</p>
+                    }
+                </div>
+                <div class="text-md-end">
+                    <div class="small text-body-secondary">Report generated</div>
+                    <div class="fw-semibold">@DateTime.Now.ToString("dd MMM yyyy HH:mm")</div>
+                </div>
+            </div>
+
+            <section class="row g-3 p-3 bg-body-tertiary rounded mb-4">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">Issue date from</div>
+                    <div class="fw-semibold">@(Model.filter.IssueDateFrom?.ToString("dd MMM yyyy") ?? "All dates")</div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">Issue date to</div>
+                    <div class="fw-semibold">@(Model.filter.IssueDateTo?.ToString("dd MMM yyyy") ?? "All dates")</div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">Policy status</div>
+                    <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.filter.PolicyStatus) ? "All statuses" : Model.filter.PolicyStatus)</div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">Records on this page</div>
+                    <div class="fw-semibold">@Model.Policies.Count of @Model.TotalCount matching policies</div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">Page</div>
+                    <div class="fw-semibold">@(Model.TotalCount == 0 ? "No pages" : $"{Model.PageNumber} of {displayTotalPages}")</div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="small text-body-secondary">Record range</div>
+                    <div class="fw-semibold">@(Model.TotalCount == 0 ? "No records" : $"{firstRecord}–{lastRecord}")</div>
+                </div>
+            </section>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle mb-0">
+                    <thead class="table-primary">
+                        <tr>
+                            <th scope="col">Policy Number</th>
+                            <th scope="col">Policyholder</th>
+                            <th scope="col">Product</th>
+                            <th scope="col">Issue Date</th>
+                            <th scope="col">Effective From</th>
+                            <th scope="col">Effective To</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Policies.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-body-secondary py-4">No policies match the selected filters.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var policy in Model.Policies)
+                            {
+                                <tr>
+                                    <td>@policy.PolicyNumber</td>
+                                    <td>@policy.PolicyholderName</td>
+                                    <td>@policy.ProductName</td>
+                                    <td>@policy.IssueDate.ToString("dd MMM yyyy")</td>
+                                    <td>@policy.EffectiveFrom.ToString("dd MMM yyyy")</td>
+                                    <td>@policy.EffectiveTo.ToString("dd MMM yyyy")</td>
+                                    <td>@policy.PolicyStatus</td>
+                                    <td class="text-end text-nowrap">@policy.CurrencyCode @policy.PremiumAmount.ToString("N2")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 pt-3 border-top no-print">
+                <div class="text-body-secondary">
+                    @if (Model.TotalCount == 0)
+                    {
+                        <span>No matching policies found.</span>
+                    }
+                    else
+                    {
+                        <span>Showing @firstRecord–@lastRecord of @Model.TotalCount policies</span>
+                    }
+                </div>
+                <nav aria-label="Preview pages">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(Model.PageNumber <= 1 || Model.TotalCount == 0 ? "disabled" : "")">
+                            @if (Model.PageNumber > 1 && Model.TotalCount > 0)
+                            {
+                                <a class="page-link"
+                                   asp-controller="Reports" asp-action="Preview"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-filter.IssueDateFrom="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-filter.IssueDateTo="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-filter.PolicyStatus="@Model.filter.PolicyStatus"
+                                   asp-route-reportOptions.CompanyName="@Model.ReportOptions.CompanyName"
+                                   asp-route-reportOptions.CompanyAddress="@Model.ReportOptions.CompanyAddress"
+                                   asp-route-reportOptions.CompanyEmail="@Model.ReportOptions.CompanyEmail"
+                                   asp-route-reportOptions.CompanyPhone="@Model.ReportOptions.CompanyPhone"
+                                   asp-route-reportOptions.ReportTitle="@Model.ReportOptions.ReportTitle"
+                                   asp-route-reportOptions.Description="@Model.ReportOptions.Description"
+                                   asp-route-reportOptions.Description="@Model.ReportOptions.Description">Previous</a>
+                            }
+                            else
+                            {
+                                <span class="page-link">Previous</span>
+                            }
+                        </li>
+                        <li class="page-item active" aria-current="page"><span class="page-link">Page @Model.PageNumber of @displayTotalPages</span></li>
+                        <li class="page-item @(Model.PageNumber >= Model.TotalPages || Model.TotalCount == 0 ? "disabled" : "")">
+                            @if (Model.PageNumber < Model.TotalPages && Model.TotalCount > 0)
+                            {
+                                <a class="page-link"
+                                   asp-controller="Reports" asp-action="Preview"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-filter.IssueDateFrom="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-filter.IssueDateTo="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-filter.PolicyStatus="@Model.filter.PolicyStatus"
+                                   asp-route-reportOptions.CompanyName="@Model.ReportOptions.CompanyName"
+                                   asp-route-reportOptions.CompanyAddress="@Model.ReportOptions.CompanyAddress"
+                                   asp-route-reportOptions.CompanyEmail="@Model.ReportOptions.CompanyEmail"
+                                   asp-route-reportOptions.CompanyPhone="@Model.ReportOptions.CompanyPhone"
+                                   asp-route-reportOptions.ReportTitle="@Model.ReportOptions.ReportTitle"
+                                   asp-route-reportOptions.Description="@Model.ReportOptions.Description"
+                                   asp-route-reportOptions.Description="@Model.ReportOptions.Description">Next</a>
+                            }
+                            else
+                            {
+                                <span class="page-link">Next</span>
+                            }
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <footer class="card-footer text-body-secondary small">
+            This report contains the policy records returned for the selected filters and page. Please verify the information before relying on it.
+        </footer>
+    </article>
+</div>
