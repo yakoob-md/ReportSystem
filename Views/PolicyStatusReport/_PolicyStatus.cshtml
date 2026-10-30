@@ -1,0 +1,394 @@
+﻿@model ReportSystem.Models.ViewModels.PolicyStatusReportViewModel
+
+@{
+    ViewData["Title"] = "Policy Status Report";
+    var displayTotalPages = Math.Max(Model.TotalPages, 1);
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-1">Policy Status Report</h1>
+            <p class="text-body-secondary mb-0">
+                Review policy status changes, add optional company letterhead details,
+                then preview or download the report.
+            </p>
+        </div>
+
+        <span class="badge text-bg-primary fs-6 align-self-start">
+            @Model.TotalCount matching records
+        </span>
+    </div>
+
+    <!-- Filter policies and status-history records -->
+    <form asp-controller="PolicyStatusReport"
+          asp-action="Index"
+          method="get"
+          class="card mb-4">
+
+        <div class="card-header">
+            <h2 class="h5 mb-0">Filter status records</h2>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="Filter.PolicyNumber" class="form-label">
+                        Policy number
+                    </label>
+                    <input asp-for="Filter.PolicyNumber"
+                           class="form-control"
+                           placeholder="Search policy number" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="Filter.Status" class="form-label">
+                        Current policy status
+                    </label>
+                    <input asp-for="Filter.Status"
+                           class="form-control"
+                           placeholder="e.g. Active" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="Filter.PreviousStatus" class="form-label">
+                        Previous status
+                    </label>
+                    <input asp-for="Filter.PreviousStatus"
+                           class="form-control"
+                           placeholder="Previous status (optional)" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="Filter.NewStatus" class="form-label">
+                        New status
+                    </label>
+                    <input asp-for="Filter.NewStatus"
+                           class="form-control"
+                           placeholder="New status (optional)" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="Filter.IssueDateFrom" class="form-label">
+                        Issue date from
+                    </label>
+                    <input asp-for="Filter.IssueDateFrom"
+                           type="date"
+                           class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="Filter.IssueDateTo" class="form-label">
+                        Issue date to
+                    </label>
+                    <input asp-for="Filter.IssueDateTo"
+                           type="date"
+                           class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-2">
+                    <label for="pageSize" class="form-label">Rows per page</label>
+                    <select id="pageSize"
+                            name="pageSize"
+                            class="form-select">
+                        <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                        <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                        <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                    </select>
+                </div>
+
+                <input type="hidden" name="pageNumber" value="1" />
+
+                <div class="col-12 col-xl-4 d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        Apply filters
+                    </button>
+
+                    <a asp-controller="PolicyStatusReport"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        Clear
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Optional company letterhead and report details -->
+    <form asp-controller="PolicyStatusReport"
+          asp-action="Preview"
+          method="get"
+          class="card mb-4">
+
+        <!-- Preserve the currently selected filters -->
+        <input type="hidden" name="filter.PolicyNumber"
+               value="@Model.Filter.PolicyNumber" />
+
+        <input type="hidden" name="filter.Status"
+               value="@Model.Filter.Status" />
+
+        <input type="hidden" name="filter.PreviousStatus"
+               value="@Model.Filter.PreviousStatus" />
+
+        <input type="hidden" name="filter.NewStatus"
+               value="@Model.Filter.NewStatus" />
+
+        <input type="hidden" name="filter.IssueDateFrom"
+               value="@Model.Filter.IssueDateFrom?.ToString("yyyy-MM-dd")" />
+
+        <input type="hidden" name="filter.IssueDateTo"
+               value="@Model.Filter.IssueDateTo?.ToString("yyyy-MM-dd")" />
+
+        <input type="hidden" name="pageNumber"
+               value="@Model.PageNumber" />
+
+        <input type="hidden" name="pageSize"
+               value="@Model.PageSize" />
+
+        <div class="card-header">
+            <h2 class="h5 mb-0">Report details and letterhead</h2>
+        </div>
+
+        <div class="card-body">
+            <p class="text-body-secondary">
+                All details below are optional. Enter your company information
+                to display it at the top of the report.
+            </p>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyName" class="form-label">
+                        Company name
+                    </label>
+                    <input asp-for="ReportOptions.CompanyName"
+                           class="form-control"
+                           placeholder="Company name (optional)" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyAddress" class="form-label">
+                        Company address
+                    </label>
+                    <input asp-for="ReportOptions.CompanyAddress"
+                           class="form-control"
+                           placeholder="Company address (optional)" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyEmail" class="form-label">
+                        Company email
+                    </label>
+                    <input asp-for="ReportOptions.CompanyEmail"
+                           type="email"
+                           class="form-control"
+                           placeholder="name@example.com" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyPhone" class="form-label">
+                        Company phone
+                    </label>
+                    <input asp-for="ReportOptions.CompanyPhone"
+                           class="form-control"
+                           placeholder="Phone number (optional)" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.ReportTitle" class="form-label">
+                        Report title
+                    </label>
+                    <input asp-for="ReportOptions.ReportTitle"
+                           class="form-control"
+                           placeholder="Policy Status Report" />
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="ReportOptions.Description" class="form-label">
+                        Description
+                    </label>
+                    <textarea asp-for="ReportOptions.Description"
+                              class="form-control"
+                              rows="2"
+                              placeholder="Optional report description or prepared-by details"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div>
+                    <div class="fw-semibold">Ready to preview or export?</div>
+                    <div class="small text-body-secondary">
+                        Page @Model.PageNumber of @displayTotalPages
+                        · @Model.Rows.Count rows on this page
+                        · @Model.TotalCount matching records
+                    </div>
+                </div>
+
+                <!-- Preview and download buttons -->
+                <div class="d-flex flex-wrap gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary"
+                            formtarget="_blank">
+                        Preview report
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-outline-primary"
+                            formmethod="get"
+                            formaction="@Url.Action("Download", "PolicyStatusReport")"
+                            name="format" value="csv">
+                        CSV
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-outline-primary"
+                            formmethod="get"
+                            formaction="@Url.Action("Download", "PolicyStatusReport")"
+                            name="format" value="html">
+                        HTML
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-outline-success"
+                            formmethod="get"
+                            formaction="@Url.Action("Download", "PolicyStatusReport")"
+                            name="format" value="excel">
+                        Excel
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-outline-primary"
+                            formmethod="get"
+                            formaction="@Url.Action("Download", "PolicyStatusReport")"
+                            name="format" value="docx">
+                        Word
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Current results -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Current results</h2>
+        </div>
+
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Policy number</dt>
+                <dd class="col-sm-9">
+                    @(string.IsNullOrWhiteSpace(Model.Filter.PolicyNumber)
+                        ? "All policies"
+                        : Model.Filter.PolicyNumber)
+                </dd>
+
+                <dt class="col-sm-3">Current status</dt>
+                <dd class="col-sm-9">
+                    @(string.IsNullOrWhiteSpace(Model.Filter.Status)
+                        ? "All statuses"
+                        : Model.Filter.Status)
+                </dd>
+
+                <dt class="col-sm-3">Previous status</dt>
+                <dd class="col-sm-9">
+                    @(string.IsNullOrWhiteSpace(Model.Filter.PreviousStatus)
+                        ? "All previous statuses"
+                        : Model.Filter.PreviousStatus)
+                </dd>
+
+                <dt class="col-sm-3">New status</dt>
+                <dd class="col-sm-9">
+                    @(string.IsNullOrWhiteSpace(Model.Filter.NewStatus)
+                        ? "All new statuses"
+                        : Model.Filter.NewStatus)
+                </dd>
+
+                <dt class="col-sm-3">Issue date from</dt>
+                <dd class="col-sm-9">
+                    @(Model.Filter.IssueDateFrom?.ToString("dd MMM yyyy") ?? "All dates")
+                </dd>
+
+                <dt class="col-sm-3">Issue date to</dt>
+                <dd class="col-sm-9">
+                    @(Model.Filter.IssueDateTo?.ToString("dd MMM yyyy") ?? "All dates")
+                </dd>
+            </dl>
+        </div>
+
+        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <p class="mb-0">
+                @if (Model.TotalCount == 0)
+                {
+                    <span>No status records match the selected filters.</span>
+                }
+                else
+                {
+                    <span>
+                        Showing @(((Model.PageNumber - 1) * Model.PageSize) + 1)–@(
+                        Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))
+                        of @Model.TotalCount matching records
+                    </span>
+                }
+            </p>
+
+            <nav aria-label="Policy status report pages">
+                <ul class="pagination mb-0">
+                    <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <a class="page-link"
+                               asp-controller="PolicyStatusReport"
+                               asp-action="Index"
+                               asp-route-filter.PolicyNumber="@Model.Filter.PolicyNumber"
+                               asp-route-filter.Status="@Model.Filter.Status"
+                               asp-route-filter.PreviousStatus="@Model.Filter.PreviousStatus"
+                               asp-route-filter.NewStatus="@Model.Filter.NewStatus"
+                               asp-route-filter.IssueDateFrom="@Model.Filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                               asp-route-filter.IssueDateTo="@Model.Filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                               asp-route-pageNumber="@(Model.PageNumber - 1)"
+                               asp-route-pageSize="@Model.PageSize">
+                                Previous
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="page-link">Previous</span>
+                        }
+                    </li>
+
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">
+                            Page @Model.PageNumber of @displayTotalPages
+                        </span>
+                    </li>
+
+                    <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <a class="page-link"
+                               asp-controller="PolicyStatusReport"
+                               asp-action="Index"
+                               asp-route-filter.PolicyNumber="@Model.Filter.PolicyNumber"
+                               asp-route-filter.Status="@Model.Filter.Status"
+                               asp-route-filter.PreviousStatus="@Model.Filter.PreviousStatus"
+                               asp-route-filter.NewStatus="@Model.Filter.NewStatus"
+                               asp-route-filter.IssueDateFrom="@Model.Filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                               asp-route-filter.IssueDateTo="@Model.Filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                               asp-route-pageNumber="@(Model.PageNumber + 1)"
+                               asp-route-pageSize="@Model.PageSize">
+                                Next
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="page-link">Next</span>
+                        }
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>

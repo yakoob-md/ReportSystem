@@ -1,0 +1,196 @@
+﻿@model ReportSystem.Models.ViewModels.PolicyReportFilterViewModel
+
+@{
+    ViewData["Title"] = "Policy Register";
+    var displayTotalPages = Math.Max(Model.TotalPages, 1);
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-1">Policy Register</h1>
+            <p class="text-body-secondary mb-0">
+                Filter insurance policies, add optional report details, then preview or download the report.
+            </p>
+        </div>
+        <span class="badge text-bg-primary fs-6 align-self-start">
+            @Model.TotalCount matching policies
+        </span>
+    </div>
+
+    <form asp-controller="Reports" asp-action="Index" method="get" class="card mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Filter policies</h2>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="filter.IssueDateFrom" class="form-label">Issue date from</label>
+                    <input asp-for="filter.IssueDateFrom" type="date" class="form-control" />
+                    <span asp-validation-for="filter.IssueDateFrom" class="text-danger"></span>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label asp-for="filter.IssueDateTo" class="form-label">Issue date to</label>
+                    <input asp-for="filter.IssueDateTo" type="date" class="form-control" />
+                    <span asp-validation-for="filter.IssueDateTo" class="text-danger"></span>
+                </div>
+                <div class="col-12 col-md-6 col-xl-2">
+                    <label asp-for="filter.PolicyStatus" class="form-label">Policy status</label>
+                    <select asp-for="filter.PolicyStatus" class="form-select">
+                        <option value="">All statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6 col-xl-2">
+                    <label for="pageSize" class="form-label">Rows per page</label>
+                    <select id="pageSize" name="pageSize" class="form-select">
+                        <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                        <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                        <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                    </select>
+                </div>
+                <div class="col-12 col-xl-2 d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary">Apply filters</button>
+                    <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mt-3"></div>
+        </div>
+    </form>
+
+    @* All report details and action buttons are in one form so each action receives the same filters and report options. *@
+    <form asp-controller="Reports" asp-action="Preview" method="get" class="card mb-4" target="_blank">
+        <input type="hidden" name="filter.IssueDateFrom" value="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="filter.IssueDateTo" value="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="filter.PolicyStatus" value="@Model.filter.PolicyStatus" />
+        <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+        <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
+        <div class="card-header">
+            <h2 class="h5 mb-0">Report details and exports</h2>
+        </div>
+        <div class="card-body">
+            <p class="text-body-secondary">
+                These optional details appear in supported report formats. Export actions use the filters and current page shown on this screen.
+            </p>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyName" class="form-label">Company name</label>
+                    <input asp-for="ReportOptions.CompanyName" class="form-control" placeholder="Company name (optional)" />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyAddress" class="form-label">Company address</label>
+                    <input asp-for="ReportOptions.CompanyAddress" class="form-control" placeholder="Company address (optional)" />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyEmail" class="form-label">Company email</label>
+                    <input asp-for="ReportOptions.CompanyEmail" type="email" class="form-control" placeholder="name@example.com" />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.CompanyPhone" class="form-label">Company phone</label>
+                    <input asp-for="ReportOptions.CompanyPhone" class="form-control" placeholder="Phone number (optional)" />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label asp-for="ReportOptions.ReportTitle" class="form-label">Report title</label>
+                    <input asp-for="ReportOptions.ReportTitle" class="form-control" placeholder="Policy Register Report" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="ReportOptions.Description" class="form-label">Description</label>
+                    <textarea asp-for="ReportOptions.Description" class="form-control" rows="2" placeholder="Optional report description"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div>
+                    <div class="fw-semibold">Ready to preview or export?</div>
+                    <div class="small text-body-secondary">
+                        Page @Model.PageNumber of @displayTotalPages · @Model.Policies.Count rows on this page · @Model.TotalCount matching policies
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" formaction="@Url.Action("Preview", "Reports")" class="btn btn-primary" formtarget="_blank">
+                        Preview report
+                    </button>
+                    <button type="submit" name="format" value="html" formaction="@Url.Action("Download", "Reports")" formtarget="_blank" class="btn btn-outline-primary">HTML</button>
+                    <button type="submit" name="format" value="csv" formaction="@Url.Action("Download", "Reports")" class="btn btn-outline-dark">CSV</button>
+                    <button type="submit" name="format" value="excel" formaction="@Url.Action("Download", "Reports")" class="btn btn-outline-success">Excel</button>
+                    <button type="submit" name="format" value="docx" formaction="@Url.Action("Download", "Reports")" class="btn btn-outline-primary">Word (DOCX)</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Current results</h2>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Issue date from</dt>
+                <dd class="col-sm-9">@(Model.filter.IssueDateFrom?.ToString("dd MMM yyyy") ?? "All dates")</dd>
+                <dt class="col-sm-3">Issue date to</dt>
+                <dd class="col-sm-9">@(Model.filter.IssueDateTo?.ToString("dd MMM yyyy") ?? "All dates")</dd>
+                <dt class="col-sm-3">Policy status</dt>
+                <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.filter.PolicyStatus) ? "All statuses" : Model.filter.PolicyStatus)</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <p class="mb-0">
+                @if (Model.TotalCount == 0)
+                {
+                    <span>No policies match the selected filters.</span>
+                }
+                else
+                {
+                    <span>Showing @(((Model.PageNumber - 1) * Model.PageSize) + 1)–@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)) of @Model.TotalCount matching policies</span>
+                }
+            </p>
+
+            <nav aria-label="Policy register pages">
+                <ul class="pagination mb-0">
+                    <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <a class="page-link"
+                               asp-controller="Reports" asp-action="Index"
+                               asp-route-filter.IssueDateFrom="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                               asp-route-filter.IssueDateTo="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                               asp-route-filter.PolicyStatus="@Model.filter.PolicyStatus"
+                               asp-route-pageNumber="@(Model.PageNumber - 1)"
+                               asp-route-pageSize="@Model.PageSize">Previous</a>
+                        }
+                        else
+                        {
+                            <span class="page-link">Previous</span>
+                        }
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">Page @Model.PageNumber of @displayTotalPages</span>
+                    </li>
+                    <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <a class="page-link"
+                               asp-controller="Reports" asp-action="Index"
+                               asp-route-filter.IssueDateFrom="@Model.filter.IssueDateFrom?.ToString("yyyy-MM-dd")"
+                               asp-route-filter.IssueDateTo="@Model.filter.IssueDateTo?.ToString("yyyy-MM-dd")"
+                               asp-route-filter.PolicyStatus="@Model.filter.PolicyStatus"
+                               asp-route-pageNumber="@(Model.PageNumber + 1)"
+                               asp-route-pageSize="@Model.PageSize">Next</a>
+                        }
+                        else
+                        {
+                            <span class="page-link">Next</span>
+                        }
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>

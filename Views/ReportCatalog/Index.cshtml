@@ -1,9 +1,9 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Select a Report";
 }
 
 <div class="container py-4">
+
     <h1 class="mb-2">Insurance Reports</h1>
 
     <p class="text-muted mb-4">
@@ -11,64 +11,42 @@
         and download the report in your preferred format.
     </p>
 
-    <div class="row g-4">
+    <div class="mb-4">
+        <label for="reportSelector" class="form-label">
+            Select Report
+        </label>
 
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Policy Register</h5>
+        <select id="reportSelector" class="form-select">
+            <option value="">-- Select a Report --</option>
 
-                    <p class="card-text">
-                        View policies with issue dates, policyholders,
-                        products, statuses, and premiums.
-                    </p>
+            <option value="PolicyRegister">
+                Policy Register
+            </option>
 
-                    <a asp-controller="Reports"
-                       asp-action="Index"
-                       class="btn btn-primary mt-auto">
-                        Open report
-                    </a>
-                </div>
-            </div>
-        </div>
+            <option value="PolicyStatus">
+                Policy Status Report
+            </option>
 
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Policy Status Report</h5>
+            <option value="PremiumDue">
+                Premium Due Report
+            </option>
 
-                    <p class="card-text">
-                        Review policy status changes, previous and new
-                        statuses, change dates, and reasons.
-                    </p>
+            <option value="PremiumCollection">
+                Premium Collection Report
+            </option>
 
-                    <a asp-controller="PolicyStatusReport"
-                       asp-action="Index"
-                       class="btn btn-primary mt-auto">
-                        Open report
-                    </a>
-                </div>
-            </div>
-        </div>
+            <option value="OutstandingPremium">
+                Outstanding Premium Report
+            </option>
 
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Premium Due Report</h5>
-
-                    <p class="card-text">
-                        Review premium-related records using
-                        the report's available filters.
-                    </p>
-
-                    <a asp-controller="PremiumDueReport"
-                       asp-action="Index"
-                       class="btn btn-primary mt-auto">
-                        Open report
-                    </a>
-                </div>
-            </div>
-        </div>
-
+            <option value="PremiumCollectionSummary">
+                Premium Collection Summary
+            </option>
+        </select>
     </div>
+
+    <div id="reportContainer">
+        @* Selected report interface will appear here *@
+    </div>
+
 </div>
